@@ -1,125 +1,15 @@
-// import 'dart:async';
-// import 'dart:convert';
-// import 'dart:typed_data';
-//
-// import 'package:dartssh2/dartssh2.dart';
-// import 'package:flutter/cupertino.dart';
-// import 'package:xterm/xterm.dart';
-// import 'package:zshell/widget/virtual_keyboard.dart';
-//
-// const host = '127.0.0.1';
-// const port = 22;
-// const username = 'root';
-// const password = 'root';
-//
-// void main() {
-//   runApp(MyApp());
-// }
-//
-// class MyApp extends StatelessWidget {
-//   @override
-//   Widget build(BuildContext context) {
-//     return CupertinoApp(
-//       title: 'xterm.dart demo',
-//       home: MyHomePage(),
-//     );
-//   }
-// }
-//
-// class MyHomePage extends StatefulWidget {
-//   MyHomePage({Key? key}) : super(key: key);
-//
-//   @override
-//   // ignore: library_private_types_in_public_api
-//   _MyHomePageState createState() => _MyHomePageState();
-// }
-//
-// class _MyHomePageState extends State<MyHomePage> {
-//   late final terminal = Terminal(inputHandler: keyboard);
-//
-//   final keyboard = VirtualKeyboard(defaultInputHandler);
-//
-//   var title = host;
-//
-//   @override
-//   void initState() {
-//     super.initState();
-//     initTerminal();
-//   }
-//
-//   Future<void> initTerminal() async {
-//     terminal.write('Connecting...\r\n');
-//
-//     final client = SSHClient(
-//       await SSHSocket.connect(host, port),
-//       username: username,
-//       onPasswordRequest: () => password,
-//     );
-//
-//     terminal.write('Connected\r\n');
-//
-//     final session = await client.shell(
-//       pty: SSHPtyConfig(
-//         width: terminal.viewWidth,
-//         height: terminal.viewHeight,
-//       ),
-//     );
-//
-//     terminal.buffer.clear();
-//     terminal.buffer.setCursor(0, 0);
-//
-//     terminal.onTitleChange = (title) {
-//       setState(() => this.title = title);
-//     };
-//
-//     terminal.onResize = (width, height, pixelWidth, pixelHeight) {
-//       session.resizeTerminal(width, height, pixelWidth, pixelHeight);
-//     };
-//
-//     terminal.onOutput = (data) {
-//       session.write(utf8.encode(data) as Uint8List);
-//     };
-//
-//     session.stdout
-//         .cast<List<int>>()
-//         .transform(Utf8Decoder())
-//         .listen(terminal.write);
-//
-//     session.stderr
-//         .cast<List<int>>()
-//         .transform(Utf8Decoder())
-//         .listen(terminal.write);
-//   }
-//
-//   @override
-//   Widget build(BuildContext context) {
-//     return CupertinoPageScaffold(
-//       navigationBar: CupertinoNavigationBar(
-//         middle: Text(title),
-//         backgroundColor:
-//         CupertinoTheme.of(context).barBackgroundColor.withOpacity(0.5),
-//       ),
-//       child: Column(
-//         children: [
-//           Expanded(
-//             child: TerminalView(terminal),
-//           ),
-//           VirtualKeyboardView(keyboard),
-//         ],
-//       ),
-//     );
-//   }
-// }
-
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_pty/flutter_pty.dart';
+import 'package:get/get.dart';
 import 'package:xterm/xterm.dart';
 import 'package:zshell/widget/platform_menu.dart';
+
+import 'common/library/tools.dart';
+import 'common/routers/app_pages.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -140,10 +30,20 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'xterm.dart demo',
+      title: 'Zshell github.com/dollarkillerx/zshell',
       debugShowCheckedModeBanner: false,
-      home: AppPlatformMenu(child: Home()),
-      // shortcuts: ,
+      home: GetMaterialApp(
+        title: "Zshell",
+        initialRoute: AppPages.InitRoute,
+        // 默认路由
+        getPages: AppPages.routers,
+        // 页面表
+        unknownRoute: AppPages.unknownRoute,
+        // 404路由
+        // 基础配置
+        debugShowCheckedModeBanner: false, // 不显示debug
+      ),
+      // AppPlatformMenu(child: Home())
     );
   }
 }
@@ -170,7 +70,7 @@ class _HomeState extends State<Home> {
     super.initState();
 
     WidgetsBinding.instance.endOfFrame.then(
-          (_) {
+      (_) {
         if (mounted) _startPty();
       },
     );
@@ -182,6 +82,7 @@ class _HomeState extends State<Home> {
       columns: terminal.viewWidth,
       rows: terminal.viewHeight,
     );
+
 
     pty.output
         .cast<List<int>>()
@@ -231,14 +132,4 @@ class _HomeState extends State<Home> {
   }
 }
 
-String get shell {
-  if (Platform.isMacOS || Platform.isLinux) {
-    return Platform.environment['SHELL'] ?? 'bash';
-  }
 
-  if (Platform.isWindows) {
-    return 'cmd.exe';
-  }
-
-  return 'sh';
-}
