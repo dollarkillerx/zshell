@@ -75,6 +75,7 @@ class Hosts {
   String? password;
   String? keyId;
   String? description;
+  String? hostId;
 
   Hosts(
       {this.label,
@@ -84,7 +85,8 @@ class Hosts {
         this.username,
         this.password,
         this.keyId,
-        this.description});
+        this.description,
+        this.hostId});
 
   Hosts.fromJson(Map<String, dynamic> json) {
     label = json['label'];
@@ -95,6 +97,7 @@ class Hosts {
     password = json['password'];
     keyId = json['keyId'];
     description = json['description'];
+    hostId = json['host_id'];
   }
 
   Map<String, dynamic> toJson() {
@@ -107,6 +110,7 @@ class Hosts {
     data['password'] = this.password;
     data['keyId'] = this.keyId;
     data['description'] = this.description;
+    data['host_id'] = this.hostId;
     return data;
   }
 }
@@ -156,7 +160,8 @@ class Keys {
     "username": "",
     "password": "",
     "keyId": "",
-    "description": ""
+    "description": "",
+    "host_id": ""
     }
     ],
     "keys": [

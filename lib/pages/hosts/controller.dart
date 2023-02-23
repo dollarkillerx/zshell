@@ -10,16 +10,39 @@ class HostsController extends GetxController {
   var sshKeyFile = "".obs;
   var group = Groups();
   var sshKey = Keys();
-  var dropdownAction = "1";
+  var dropdownAction = "0".obs;
+  var dropdownSSHKeyAction = "0".obs;
+  var host = Hosts();
+  List<Groups> groups = [];
+  Map<String, List<Hosts>> hosts = Map();
 
   var dropdownGroupItems = [
     DropdownMenuItem(
       child: Text(
         "default",
       ),
-      value: "1",
+      value: "0",
     )
   ];
+
+  var dropdownSSHKeyItems = [
+    DropdownMenuItem(
+      child: Text(
+        "not use",
+      ),
+      value: "0",
+    )
+  ];
+
+  @override
+  void onInit() async {
+    super.onInit();
+
+    // update dropdownGroupItems
+    await flushGroups();
+    await flushSSHKey();
+    await flushHosts();
+  }
 
   void pickFile() async {
     FilePickerResult? result = await FilePicker.platform.pickFiles();
@@ -41,48 +64,110 @@ class HostsController extends GetxController {
     }
   }
 
-  void newGroup() async {
-    // var zshell = await LocalData.getZShellEntity();
-    // zshell.groups?.add(Groups(
-    //     label: group.label,
-    //     description: group.description,
-    //     groupId: generateRandomString(5)));
-    //
-    // LocalData.setZShellEntity(zshell);
-    // group.label = '';
-    // group.description = '';
-    // group.groupId = '';
+  newGroup() async {
+    var zshell = await LocalData.getZShellEntity();
+    zshell.groups?.add(Groups(
+        label: group.label,
+        description: group.description,
+        groupId: generateRandomString(5)));
+
+    LocalData.setZShellEntity(zshell);
+    group = Groups();
+
+    await flushSSHKey();
+    update();
   }
 
-  void newSSHKey() async {
-    // var zshell = await LocalData.getZShellEntity();
-    // zshell.keys?.add(Keys(
-    //     label: sshKey.label,
-    //     description: sshKey.description,
-    //     data: sshKey.data,
-    //     keyId: generateRandomString(5)));
-    //
-    // LocalData.setZShellEntity(zshell);
-    // sshKey.label = '';
-    // sshKey.description = '';
-    // sshKey.keyId = '';
-    // sshKey.data = '';
+  newSSHKey() async {
+    var zshell = await LocalData.getZShellEntity();
+    zshell.keys?.add(Keys(
+        label: sshKey.label,
+        description: sshKey.description,
+        data: sshKey.data,
+        keyId: generateRandomString(5)));
+
+    LocalData.setZShellEntity(zshell);
+    sshKey = Keys();
+
+    await flushSSHKey();
+    update();
   }
 
-  getGroups() async {
-    // print(":aaaaa");
-    // var zshell = await LocalData.getZShellEntity();
-    // zshell.groups?.map((e) {
-    //   dropdownGroupItems.add(DropdownMenuItem(
-    //     child: Text(
-    //       e.label!,
-    //     ),
-    //     value: e.groupId,
-    //   ));
-    //   print(e);
-    // });
-    //
-    // print(dropdownGroupItems.length);
-    // print(dropdownGroupItems);
+  flushGroups() async {
+    dropdownAction.value = dropdownGroupItems[0].value!;
+    var zshell = await LocalData.getZShellEntity();
+    dropdownGroupItems.clear();
+
+    groups.clear();
+    zshell.groups?.forEach((element) {
+      dropdownGroupItems.add(DropdownMenuItem(
+        child: Text(
+          element.label!,
+        ),
+        value: element.groupId,
+      ));
+
+      groups.add(element);
+    });
+  }
+
+  flushSSHKey() async {
+    dropdownSSHKeyAction.value = dropdownSSHKeyItems[0].value!;
+    var zshell = await LocalData.getZShellEntity();
+    dropdownSSHKeyItems.clear();
+
+    zshell.keys?.forEach((element) {
+      dropdownSSHKeyItems.add(DropdownMenuItem(
+        child: Text(
+          element.label!,
+        ),
+        value: element.keyId,
+      ));
+    });
+  }
+
+  groupChange(String? value) {
+    dropdownAction.value = value!;
+    host.groupId = value;
+  }
+
+  sshKeyChange(String? value) {
+    dropdownSSHKeyAction.value = value!;
+    host.keyId = value;
+  }
+
+  newSSH() async {
+    var zshell = await LocalData.getZShellEntity();
+    if (host.groupId == null) {
+      host.groupId = dropdownGroupItems[0].value;
+    }
+    zshell.hosts?.add(Hosts(
+        label: host.label,
+        description: host.description,
+        address: host.address,
+        port: host.port,
+        username: host.username,
+        password: host.password,
+        groupId: host.groupId,
+        hostId: generateRandomString(5),
+        keyId: host.keyId));
+
+    LocalData.setZShellEntity(zshell);
+
+    flushHosts();
+    update();
+  }
+
+  flushHosts() async {
+    var zshell = await LocalData.getZShellEntity();
+    hosts.clear();
+    zshell.hosts?.forEach((element) {
+      if (hosts[element.groupId] == null) {
+        hosts[element.groupId!] = [];
+      }
+      hosts[element.groupId]?.add(element);
+    });
+
+    // prixnt("object  ${hosts.length} ${zshell.hosts?.length}");
   }
 }

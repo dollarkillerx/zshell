@@ -1,6 +1,10 @@
+import 'dart:io';
+
 import 'package:bruno/bruno.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:zshell/common/entity/zshell.dart';
 import 'controller.dart';
 
 class HostsPage extends GetView<HostsController> {
@@ -12,11 +16,131 @@ class HostsPage extends GetView<HostsController> {
           child: Column(
             children: [
               buildSelect(context),
+              ...controller.groups.map((e) {
+                return buildCard(e);
+              }),
             ],
           ),
         ),
       );
     });
+  }
+
+  Container buildCard(Groups groups) {
+    // if (groups.groupId == "0") {
+    //   return Container();
+    // }
+
+    List<Hosts> hosts = [];
+
+    controller.hosts.forEach((key, value) {
+      if (key == groups.groupId) {
+        value.forEach((element) {
+          hosts.add(element);
+        });
+      }
+    });
+
+    return Container(
+      padding: EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text("Group: ${groups.label}"),
+              Text("${groups.description ?? ""}"),
+              Row(
+                children: [
+                  Container(
+                    height: 25,
+                    child: CircleAvatar(
+                      child: Icon(
+                        Icons.edit,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                  Container(
+                    height: 25,
+                    child: CircleAvatar(
+                      backgroundColor: Colors.redAccent,
+                      child: Icon(
+                        Icons.delete_forever_outlined,
+                        color: Colors.white,
+                      ),
+                    ),
+                  )
+                ],
+              )
+            ],
+          ),
+          Divider(),
+          ...hosts.map((e) {
+            return Container(
+              height: 100,
+              width: double.infinity,
+              padding: EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                  color: Colors.white, borderRadius: BorderRadius.circular(10)),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      Row(
+                        children: [
+                          Image.asset(
+                            "assets/images/tux.png",
+                            fit: BoxFit.fill,
+                            height: 80,
+                          ),
+                          SizedBox(
+                            width: 20,
+                          ),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text("Label: ${e.label}"),
+                              SizedBox(
+                                height: 5,
+                              ),
+                              Text("Address: ${e.address}"),
+                              SizedBox(
+                                height: 5,
+                              ),
+                              Text(
+                                "Description: ${e.description ?? ""}",
+                                style: TextStyle(color: Colors.grey),
+                              ),
+                            ],
+                          )
+                        ],
+                      ),
+                      CircleAvatar(
+                        child: Icon(Icons.cable),
+                      ),
+                      CircleAvatar(
+                        child: Icon(Icons.edit),
+                      ),
+                      CircleAvatar(
+                        backgroundColor: Colors.redAccent,
+                        child: Icon(
+                          Icons.delete_forever_outlined,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
+                  )
+                ],
+              ),
+            );
+          })
+        ],
+      ),
+    );
   }
 
   BrnTextButtonPanel buildSelect(context) {
@@ -31,7 +155,6 @@ class HostsPage extends GetView<HostsController> {
             break;
           case 2:
             Get.defaultDialog(title: "New Host", content: buildNewHost());
-            controller.sshKeyFile.value = "";
             break;
           case 0:
             Get.defaultDialog(title: "Import SSH Key", content: buildNewSSH());
@@ -49,7 +172,7 @@ class HostsPage extends GetView<HostsController> {
           TextField(
             autofocus: true,
             onChanged: (r) {
-              controller.sshKey.label = r;
+              controller.sshKey.label = r.trim();
             },
             decoration: InputDecoration(
                 labelText: "Label",
@@ -57,7 +180,7 @@ class HostsPage extends GetView<HostsController> {
           ),
           TextField(
             onChanged: (r) {
-              controller.sshKey.description = r;
+              controller.sshKey.description = r.trim();
             },
             decoration: InputDecoration(
               labelText: "Description",
@@ -114,13 +237,15 @@ class HostsPage extends GetView<HostsController> {
   }
 
   Container buildNewHost() {
+    controller.flushGroups();
+    sleep(Duration(microseconds: 80));
     return Container(
       child: Column(
         children: [
           TextField(
             autofocus: true,
             onChanged: (r) {
-              print(r);
+              controller.host.label = r.trim();
             },
             decoration: InputDecoration(
                 labelText: "Label",
@@ -128,7 +253,7 @@ class HostsPage extends GetView<HostsController> {
           ),
           TextField(
             onChanged: (r) {
-              print(r);
+              controller.host.address = r.trim();
             },
             decoration: InputDecoration(
               labelText: "Host",
@@ -136,15 +261,22 @@ class HostsPage extends GetView<HostsController> {
           ),
           TextField(
             onChanged: (r) {
-              print(r);
+              controller.host.port = int.parse(r);
             },
             decoration: InputDecoration(
               labelText: "Port",
             ),
+            keyboardType: TextInputType.number,
+            inputFormatters: [
+              FilteringTextInputFormatter.digitsOnly, //数字，只能是整数
+              // LengthLimitingTextInputFormatter(15), //限制长度
+              // FilteringTextInputFormatter.allow(RegExp("[0-9.]")),//数字包括小数
+              // FilteringTextInputFormatter.allow(RegExp("[a-zA-Z]")),//只允许输入字母
+            ],
           ),
           TextField(
             onChanged: (r) {
-              print(r);
+              controller.host.username = r.trim();
             },
             decoration: InputDecoration(
               labelText: "Username",
@@ -152,10 +284,18 @@ class HostsPage extends GetView<HostsController> {
           ),
           TextField(
             onChanged: (r) {
-              print(r);
+              controller.host.password = r.trim();
             },
             decoration: InputDecoration(
               labelText: "Password",
+            ),
+          ),
+          TextField(
+            onChanged: (r) {
+              controller.host.description = r.trim();
+            },
+            decoration: InputDecoration(
+              labelText: "Description",
             ),
           ),
           SizedBox(
@@ -167,49 +307,25 @@ class HostsPage extends GetView<HostsController> {
               Row(
                 children: [
                   Text("Group: "),
-                  DropdownButton(
-                    items: controller.dropdownGroupItems,
-                    value: controller.dropdownAction,
-                    onChanged: (String? value) {
-                      controller.dropdownAction = value!;
-                    },
-                    onTap: () {
-                      controller.getGroups();
-                    },
-                  ),
+                  Obx(() => DropdownButton(
+                        items: controller.dropdownGroupItems,
+                        value: controller.dropdownAction.value,
+                        onChanged: (String? value) {
+                          controller.groupChange(value);
+                        },
+                      )),
                 ],
               ),
               Row(
                 children: [
                   Text("Use SSHKey: "),
-                  DropdownButton(
-                    items: [
-                      DropdownMenuItem(
-                        child: Text(
-                          "1111",
-                          style: TextStyle(
-                              color: controller.dropdownAction == "1"
-                                  ? Colors.red
-                                  : Colors.grey),
-                        ),
-                        value: "1",
-                      ),
-                      DropdownMenuItem(
-                        child: Text(
-                          "2222",
-                          style: TextStyle(
-                              color: controller.dropdownAction == "2"
-                                  ? Colors.red
-                                  : Colors.grey),
-                        ),
-                        value: "2",
-                      ),
-                    ],
-                    value: controller.dropdownAction,
-                    onChanged: (String? value) {
-                      controller.dropdownAction = value!;
-                    },
-                  ),
+                  Obx(() => DropdownButton(
+                        items: controller.dropdownSSHKeyItems,
+                        value: controller.dropdownSSHKeyAction.value,
+                        onChanged: (String? value) {
+                          controller.sshKeyChange(value);
+                        },
+                      )),
                 ],
               ),
             ],
@@ -217,16 +333,9 @@ class HostsPage extends GetView<HostsController> {
           SizedBox(
             height: 5,
           ),
-          Obx(() {
-            return controller.sshKeyFile.value == ""
-                ? SizedBox()
-                : Text("SSH Key: ${controller.sshKeyFile.value}");
-          }),
-          SizedBox(
-            height: 10,
-          ),
           ElevatedButton(
               onPressed: () {
+                controller.newSSH();
                 Get.back();
               },
               style: ElevatedButton.styleFrom(
@@ -252,7 +361,7 @@ class HostsPage extends GetView<HostsController> {
           TextField(
             autofocus: true,
             onChanged: (r) {
-              controller.group.label = r;
+              controller.group.label = r.trim();
             },
             decoration: InputDecoration(
                 labelText: "Label", prefixIcon: Icon(Icons.group_add_outlined)),
@@ -260,7 +369,7 @@ class HostsPage extends GetView<HostsController> {
           TextField(
             autofocus: true,
             onChanged: (r) {
-              controller.group.description = r;
+              controller.group.description = r.trim();
             },
             decoration: InputDecoration(
               labelText: "Description",
@@ -270,8 +379,8 @@ class HostsPage extends GetView<HostsController> {
             height: 10,
           ),
           ElevatedButton(
-              onPressed: () {
-                controller.newGroup();
+              onPressed: () async {
+                await controller.newGroup();
                 Get.back();
               },
               style: ElevatedButton.styleFrom(
