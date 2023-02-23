@@ -1,4 +1,6 @@
 import 'package:get/get.dart';
+import 'package:zshell/pages/hosts/binding.dart';
+import 'package:zshell/pages/hosts/index.dart';
 import '../../components/r404.dart';
 import '../../pages/home/binding.dart';
 import '../../pages/home/index.dart';
@@ -10,10 +12,16 @@ class AppPages {
   static final routers = [
     // 主页导航
     GetPage(
-      name: AppRoutes.Home,
-      page: () => HomePage(),
-      binding: HomeBinding(),
-    ),
+        name: AppRoutes.Home,
+        page: () => HomePage(),
+        binding: HomeBinding(),
+        children: [
+          GetPage(
+            name: AppRoutes.Hosts,
+            page: () => HostsPage(),
+            binding: HostsBinding(),
+          )
+        ]),
   ];
 
   static final unknownRoute = GetPage(

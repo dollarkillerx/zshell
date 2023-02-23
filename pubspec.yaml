@@ -39,6 +39,9 @@ dependencies:
   flutter_pty: ^0.3.0
   dartssh2: ^2.7.3
   get: ^4.6.5
+  bitsdojo_window: ^0.1.5
+  bruno: ^3.3.0
+  file_picker: ^5.2.5
 
 dev_dependencies:
   flutter_test:
