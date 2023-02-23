@@ -16,9 +16,11 @@ class HostsPage extends GetView<HostsController> {
           child: Column(
             children: [
               buildSelect(context),
-              ...controller.groups.map((e) {
-                return buildCard(e);
-              }),
+              Obx(() => Column(
+                    children: controller.groups.map((e) {
+                      return buildCard(e);
+                    }).toList(),
+                  ))
             ],
           ),
         ),

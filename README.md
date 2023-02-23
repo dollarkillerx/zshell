@@ -1,6 +1,7 @@
 # ZShell
 ZShell   Open Source SSH Client
 
+![](./assets/images/2x.png)
 
 
 ### macos 开发注意事项

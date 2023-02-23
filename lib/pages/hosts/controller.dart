@@ -13,7 +13,7 @@ class HostsController extends GetxController {
   var dropdownAction = "0".obs;
   var dropdownSSHKeyAction = "0".obs;
   var host = Hosts();
-  List<Groups> groups = [];
+  RxList<Groups> groups = <Groups>[].obs;
   Map<String, List<Hosts>> hosts = Map();
 
   var dropdownGroupItems = [
@@ -74,8 +74,7 @@ class HostsController extends GetxController {
     LocalData.setZShellEntity(zshell);
     group = Groups();
 
-    await flushSSHKey();
-    update();
+    await flushGroups();
   }
 
   newSSHKey() async {
@@ -153,6 +152,9 @@ class HostsController extends GetxController {
         keyId: host.keyId));
 
     LocalData.setZShellEntity(zshell);
+
+    dropdownAction.value = dropdownGroupItems[0].value!;
+    dropdownSSHKeyAction.value = dropdownSSHKeyItems[0].value!;
 
     flushHosts();
     update();
