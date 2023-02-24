@@ -18,7 +18,7 @@ class HostsPage extends GetView<HostsController> {
               buildSelect(context),
               Obx(() => Column(
                     children: controller.groups.map((e) {
-                      return buildCard(e);
+                      return buildCard(context, e);
                     }).toList(),
                   ))
             ],
@@ -28,7 +28,7 @@ class HostsPage extends GetView<HostsController> {
     });
   }
 
-  Container buildCard(Groups groups) {
+  Container buildCard(BuildContext context, Groups groups) {
     // if (groups.groupId == "0") {
     //   return Container();
     // }
@@ -55,22 +55,32 @@ class HostsPage extends GetView<HostsController> {
               Text("${groups.description ?? ""}"),
               Row(
                 children: [
-                  Container(
-                    height: 25,
-                    child: CircleAvatar(
-                      child: Icon(
-                        Icons.edit,
-                        color: Colors.white,
+                  GestureDetector(
+                    onTap: () {
+                      controller.modifyGroup(context, groups);
+                    },
+                    child: Container(
+                      height: 25,
+                      child: CircleAvatar(
+                        child: Icon(
+                          Icons.edit,
+                          color: Colors.white,
+                        ),
                       ),
                     ),
                   ),
-                  Container(
-                    height: 25,
-                    child: CircleAvatar(
-                      backgroundColor: Colors.redAccent,
-                      child: Icon(
-                        Icons.delete_forever_outlined,
-                        color: Colors.white,
+                  GestureDetector(
+                    onTap: () {
+                      controller.deleteGroup(context, groups);
+                    },
+                    child: Container(
+                      height: 25,
+                      child: CircleAvatar(
+                        backgroundColor: Colors.redAccent,
+                        child: Icon(
+                          Icons.delete_forever_outlined,
+                          color: Colors.white,
+                        ),
                       ),
                     ),
                   )

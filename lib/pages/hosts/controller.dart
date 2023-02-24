@@ -1,6 +1,8 @@
 import 'dart:io';
+import 'package:bruno/bruno.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:zshell/common/entity/zshell.dart';
 import 'package:zshell/common/library/tools.dart';
@@ -171,5 +173,107 @@ class HostsController extends GetxController {
     });
 
     // prixnt("object  ${hosts.length} ${zshell.hosts?.length}");
+  }
+
+  modifyGroup(BuildContext context, Groups group) {
+    Widget dialog = Container(
+      child: Column(
+        children: [
+          TextField(
+            autofocus: true,
+            controller: TextEditingController(text: group.label),
+            onChanged: (r) {
+              group.label = r.trim();
+            },
+            decoration: InputDecoration(
+                labelText: "Label", prefixIcon: Icon(Icons.group_add_outlined)),
+          ),
+          TextField(
+            autofocus: true,
+            controller: TextEditingController(text: group.description),
+            onChanged: (r) {
+              group.description = r.trim();
+            },
+            decoration: InputDecoration(
+              labelText: "Description",
+            ),
+          ),
+          SizedBox(
+            height: 10,
+          ),
+          ElevatedButton(
+              onPressed: () async {
+                var zshell = await LocalData.getZShellEntity();
+                int? index = zshell.groups?.indexWhere((element) {
+                  if (element.groupId == group.groupId) {
+                    return true;
+                  }
+                  return false;
+                });
+                if (index != null) {
+                  zshell.groups?[index] = group;
+                }
+
+                LocalData.setZShellEntity(zshell);
+                flushGroups();
+
+                Get.back();
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blue,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: Container(
+                alignment: Alignment.center,
+                width: double.infinity,
+                child: Text("Save"),
+              ))
+        ],
+      ),
+    );
+
+    Get.defaultDialog(title: "Modify Group", content: dialog);
+  }
+
+  deleteGroup(BuildContext context, Groups groups) {
+    BrnDialogManager.showConfirmDialog(context,
+        // showIcon: true,
+        warningWidget: Icon(
+          Icons.warning,
+          color: Colors.redAccent,
+        ),
+        warning: "Delete Group ?",
+        confirm: "Yes",
+        cancel: "No",
+        message:
+            "Confirm to delete the group, all machines under the group will be deleted。",
+        onConfirm: () async {
+      var zshell = await LocalData.getZShellEntity();
+      zshell.groups?.removeWhere((element) {
+        if (element.groupId == groups.groupId) {
+          return true;
+        }
+        return false;
+      });
+
+      zshell.hosts?.removeWhere((element) {
+        if (element.groupId == groups.groupId) {
+          return true;
+        }
+        return false;
+      });
+
+      LocalData.setZShellEntity(zshell);
+      flushGroups();
+      flushSSHKey();
+
+      BrnToast.show("successfully deleted", context);
+      Get.back();
+    }, onCancel: () {
+      BrnToast.show("cancel operation", context);
+      Get.back();
+    });
   }
 }
