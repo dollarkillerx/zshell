@@ -137,11 +137,16 @@ class HostsPage extends GetView<HostsController> {
                       CircleAvatar(
                         child: Icon(Icons.edit),
                       ),
-                      CircleAvatar(
-                        backgroundColor: Colors.redAccent,
-                        child: Icon(
-                          Icons.delete_forever_outlined,
-                          color: Colors.white,
+                      GestureDetector(
+                        onTap: () {
+                          controller.deleteHost(context, e);
+                        },
+                        child: CircleAvatar(
+                          backgroundColor: Colors.redAccent,
+                          child: Icon(
+                            Icons.delete_forever_outlined,
+                            color: Colors.white,
+                          ),
                         ),
                       ),
                     ],

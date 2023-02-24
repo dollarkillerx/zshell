@@ -155,10 +155,11 @@ class HostsController extends GetxController {
 
     LocalData.setZShellEntity(zshell);
 
+    host.groupId = dropdownGroupItems[0].value;
     dropdownAction.value = dropdownGroupItems[0].value!;
     dropdownSSHKeyAction.value = dropdownSSHKeyItems[0].value!;
 
-    flushHosts();
+    await flushHosts();
     update();
   }
 
@@ -248,7 +249,7 @@ class HostsController extends GetxController {
         confirm: "Yes",
         cancel: "No",
         message:
-            "Confirm to delete the group, all machines under the group will be deleted。",
+            "Confirm to delete the ${group.label} group, all machines under the group will be deleted。",
         onConfirm: () async {
       var zshell = await LocalData.getZShellEntity();
       zshell.groups?.removeWhere((element) {
@@ -266,10 +267,42 @@ class HostsController extends GetxController {
       });
 
       LocalData.setZShellEntity(zshell);
-      flushGroups();
-      flushSSHKey();
+      await flushGroups();
+      await flushHosts();
 
       BrnToast.show("successfully deleted", context);
+      Get.back();
+    }, onCancel: () {
+      BrnToast.show("cancel operation", context);
+      Get.back();
+    });
+  }
+
+  deleteHost(BuildContext context, Hosts host) {
+    BrnDialogManager.showConfirmDialog(context,
+        // showIcon: true,
+        warningWidget: Icon(
+          Icons.warning,
+          color: Colors.redAccent,
+        ),
+        warning: "Delete Host ?",
+        confirm: "Yes",
+        cancel: "No",
+        message: "Confirm to delete the ${host.label} ${host.address}",
+        onConfirm: () async {
+      var zshell = await LocalData.getZShellEntity();
+      zshell.hosts?.removeWhere((element) {
+        if (element.hostId == host.hostId) {
+          return true;
+        }
+        return false;
+      });
+
+      LocalData.setZShellEntity(zshell);
+      await flushHosts();
+
+      BrnToast.show("successfully deleted", context);
+      update();
       Get.back();
     }, onCancel: () {
       BrnToast.show("cancel operation", context);
