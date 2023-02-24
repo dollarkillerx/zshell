@@ -38,20 +38,44 @@ class HomePage extends GetView<HomeController> {
   Container buildLeftMenu() {
     return Container(
       color: Color(0xff404044),
-      padding: EdgeInsets.all(20),
+      padding: EdgeInsets.all(18),
       child: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          IButton(Icons.display_settings_outlined, "Hosts",
-              controller.menuSelectIndex == 0 ? true : false, () {
-            controller.menuSelectIndexSet(0);
-          }),
-          SizedBox(
-            height: 15,
+          Column(
+            children: [
+              IButton(Icons.display_settings_outlined, "Hosts",
+                  controller.menuSelectIndex == 0 ? true : false, () {
+                controller.menuSelectIndexSet(0);
+              }),
+              SizedBox(
+                height: 15,
+              ),
+              IButton(Icons.file_copy, "SFTP",
+                  controller.menuSelectIndex == 1 ? true : false, () {
+                controller.menuSelectIndexSet(1);
+              }),
+              SizedBox(
+                height: 15,
+              ),
+              IButton(Icons.key_outlined, "SSH Key",
+                  controller.menuSelectIndex == 2 ? true : false, () {
+                controller.menuSelectIndexSet(1);
+              }),
+              SizedBox(
+                height: 15,
+              ),
+              IButton(Icons.import_export_outlined, "Port Forwarding",
+                  controller.menuSelectIndex == 2 ? true : false, () {
+                controller.menuSelectIndexSet(1);
+              }),
+            ],
           ),
-          IButton(Icons.file_copy, "SFTP",
-              controller.menuSelectIndex == 1 ? true : false, () {
-            controller.menuSelectIndexSet(1);
-          }),
+          IButton(Icons.account_balance_outlined, "About", false, () {
+            Get.defaultDialog(
+                title: "About",
+                content: Text("https://github.com/dollarkillerx/zshell"));
+          })
         ],
       ),
     );

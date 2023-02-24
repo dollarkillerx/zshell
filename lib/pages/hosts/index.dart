@@ -1,6 +1,8 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:bruno/bruno.dart';
+import 'package:desktop_multi_window/desktop_multi_window.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -131,8 +133,23 @@ class HostsPage extends GetView<HostsController> {
                           )
                         ],
                       ),
-                      CircleAvatar(
-                        child: Icon(Icons.cable),
+                      GestureDetector(
+                        onTap: () async {
+                          final window =
+                              await DesktopMultiWindow.createWindow(jsonEncode({
+                            'name': 'client',
+                            'hosts': e,
+                          }));
+                          window
+                            ..setFrame(
+                                const Offset(0, 0) & const Size(820, 600))
+                            ..center()
+                            ..setTitle('ZShell Terminal')
+                            ..show();
+                        },
+                        child: CircleAvatar(
+                          child: Icon(Icons.cable),
+                        ),
                       ),
                       GestureDetector(
                         onTap: () {

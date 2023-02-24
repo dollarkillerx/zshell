@@ -41,9 +41,9 @@ class HostsController extends GetxController {
     super.onInit();
 
     // update dropdownGroupItems
-    await flushGroups();
-    await flushSSHKey();
     await flushHosts();
+    await flushSSHKey();
+    await flushGroups();
   }
 
   void pickFile() async {
