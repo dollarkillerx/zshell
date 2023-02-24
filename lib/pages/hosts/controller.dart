@@ -142,6 +142,9 @@ class HostsController extends GetxController {
     if (host.groupId == null) {
       host.groupId = dropdownGroupItems[0].value;
     }
+    if (host.keyId == null) {
+      host.keyId = dropdownSSHKeyItems[0].value;
+    }
     zshell.hosts?.add(Hosts(
         label: host.label,
         description: host.description,
@@ -308,5 +311,151 @@ class HostsController extends GetxController {
       BrnToast.show("cancel operation", context);
       Get.back();
     });
+  }
+
+  editHost(BuildContext context, Hosts host) async {
+    await flushGroups();
+    await flushSSHKey();
+
+    var groupId = host.groupId.obs;
+    var keyId = host.keyId.obs;
+
+    Widget dialog = Container(
+      child: Column(
+        children: [
+          TextField(
+            autofocus: true,
+            controller: TextEditingController(text: host.label),
+            onChanged: (r) {
+              host.label = r.trim();
+            },
+            decoration: InputDecoration(
+                labelText: "Label",
+                prefixIcon: Icon(Icons.drive_file_rename_outline)),
+          ),
+          TextField(
+            onChanged: (r) {
+              host.address = r.trim();
+            },
+            controller: TextEditingController(text: host.address),
+            decoration: InputDecoration(
+              labelText: "Host",
+            ),
+          ),
+          TextField(
+            onChanged: (r) {
+              host.port = int.parse(r);
+            },
+            controller: TextEditingController(text: host.port.toString()),
+            decoration: InputDecoration(
+              labelText: "Port",
+            ),
+            keyboardType: TextInputType.number,
+            inputFormatters: [
+              FilteringTextInputFormatter.digitsOnly, //数字，只能是整数
+            ],
+          ),
+          TextField(
+            onChanged: (r) {
+              host.username = r.trim();
+            },
+            controller: TextEditingController(text: host.username),
+            decoration: InputDecoration(
+              labelText: "Username",
+            ),
+          ),
+          TextField(
+            onChanged: (r) {
+              host.password = r.trim();
+            },
+            controller: TextEditingController(text: host.password),
+            decoration: InputDecoration(
+              labelText: "Password",
+            ),
+          ),
+          TextField(
+            onChanged: (r) {
+              host.description = r.trim();
+            },
+            controller: TextEditingController(text: host.description),
+            decoration: InputDecoration(
+              labelText: "Description",
+            ),
+          ),
+          SizedBox(
+            height: 10,
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  Text("Group: "),
+                  Obx(() => DropdownButton(
+                        items: dropdownGroupItems,
+                        value: groupId.value,
+                        onChanged: (String? value) {
+                          groupId.value = value;
+                          host.groupId = value;
+                          print('host.groupId ${host.groupId}');
+                        },
+                      )),
+                ],
+              ),
+              Row(
+                children: [
+                  Text("Use SSHKey: "),
+                  Obx(() => DropdownButton(
+                        items: dropdownSSHKeyItems,
+                        value: keyId.value,
+                        onChanged: (String? value) {
+                          host.keyId = value;
+                          keyId.value = value;
+                          print('host.keyId ${host.keyId}');
+                        },
+                      )),
+                ],
+              ),
+            ],
+          ),
+          SizedBox(
+            height: 5,
+          ),
+          ElevatedButton(
+              onPressed: () async {
+                var zshell = await LocalData.getZShellEntity();
+                var idx = zshell.hosts?.indexWhere((element) {
+                  if (element.hostId == host.hostId) {
+                    return true;
+                  }
+
+                  return false;
+                });
+
+                if (idx != null) {
+                  zshell.hosts?[idx] = host;
+                  LocalData.setZShellEntity(zshell);
+                  await flushHosts();
+                  update();
+                }
+
+                Get.back();
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blue,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: Container(
+                alignment: Alignment.center,
+                width: double.infinity,
+                child: Text("Save"),
+              ))
+        ],
+      ),
+    );
+
+    Get.defaultDialog(title: "Modify Host", content: dialog);
   }
 }

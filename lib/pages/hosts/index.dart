@@ -134,8 +134,13 @@ class HostsPage extends GetView<HostsController> {
                       CircleAvatar(
                         child: Icon(Icons.cable),
                       ),
-                      CircleAvatar(
-                        child: Icon(Icons.edit),
+                      GestureDetector(
+                        onTap: () {
+                          controller.editHost(context, e);
+                        },
+                        child: CircleAvatar(
+                          child: Icon(Icons.edit),
+                        ),
                       ),
                       GestureDetector(
                         onTap: () {
@@ -255,6 +260,7 @@ class HostsPage extends GetView<HostsController> {
 
   Container buildNewHost() {
     controller.flushGroups();
+    controller.flushSSHKey();
     sleep(Duration(microseconds: 80));
     return Container(
       child: Column(
